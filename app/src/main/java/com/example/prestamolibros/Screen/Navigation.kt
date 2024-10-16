@@ -9,20 +9,11 @@ import androidx.navigation.compose.rememberNavController
 fun Navigation() {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = "main_screen") {
-        composable("main_screen") {
-            MainScreen(navController)
-        }
-        composable("author_screen") {
-            AuthorScreen(navController)
-        }
-        composable("book_screen") {
-            BookScreen(navController)
-        }
-        composable("member_screen") {
-            MemberScreen(navController)
-        }
-        composable("loan_screen") {
-            LoanScreen(navController)
-        }
+        composable("main_screen") { MainScreen(navController) }
+        composable("author_screen") { AuthorScreen(navController) }
+        composable("book_screen") { BookScreen(navController) }
+        composable("loan_screen") { LoanScreen(navController) }
+        composable("member_screen") { MemberScreen(navController) }
     }
+
 }

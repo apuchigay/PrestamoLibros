@@ -19,7 +19,7 @@ fun MainScreen(navController: NavController) {
     ) {
         Text(text = "Sistema de Préstamo de Libros")
         Button(onClick = { navController.navigate("author_screen") }) {
-            Text(text = "Registrar Autor")
+            Text(text = "Registrar autor")
         }
         Button(onClick = { navController.navigate("book_screen") }) {
             Text(text = "Registrar Libro")
