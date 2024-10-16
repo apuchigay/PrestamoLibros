@@ -1,7 +1,7 @@
 package com.example.prestamolibros.Repository
 
-import Author
 import com.example.prestamolibros.DAO.AuthorDao
+import com.example.prestamolibros.model.Author
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

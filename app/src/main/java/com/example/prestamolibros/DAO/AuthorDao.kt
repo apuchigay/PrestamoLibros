@@ -1,7 +1,7 @@
 package com.example.prestamolibros.DAO
 
-import Author
 import androidx.room.*
+import com.example.prestamolibros.model.Author
 
 @Dao
 interface AuthorDao {

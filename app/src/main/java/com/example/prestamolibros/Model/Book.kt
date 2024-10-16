@@ -1,6 +1,5 @@
 package com.example.prestamolibros.model
 
-import Author
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
