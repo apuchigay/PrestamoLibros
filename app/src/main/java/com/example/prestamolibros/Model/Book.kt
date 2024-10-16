@@ -1,6 +1,6 @@
 package com.example.prestamolibros.model
 
-import Autor
+import Author
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey
     tableName = "libros",
     foreignKeys = [
         ForeignKey(
-            entity = Autor::class,
+            entity = Author::class,
             parentColumns = ["autorId"],
             childColumns = ["autorId"],
             onDelete = ForeignKey.CASCADE

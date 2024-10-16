@@ -2,7 +2,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "autores")
-data class Autor(
+data class Author(
     @PrimaryKey(autoGenerate = true)
     val autorId: Int = 0,
     val nombre: String,

@@ -1,4 +1,4 @@
 package com.example.prestamolibros.Repository
 
-class UserRepository {
+class AuthorRepository {
 }
