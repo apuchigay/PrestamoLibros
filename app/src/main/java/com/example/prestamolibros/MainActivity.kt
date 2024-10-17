@@ -3,11 +3,8 @@ package com.example.prestamolibros
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.compose.rememberNavController
 import com.example.prestamolibros.Repository.AuthorRepository
-import com.example.prestamolibros.Screen.AuthorScreen
 import com.example.prestamolibros.Screen.AuthorViewModel
 import com.example.prestamolibros.Screen.AuthorViewModelFactory
 import com.example.prestamolibros.Screen.Navigation
@@ -32,7 +29,7 @@ class MainActivity : ComponentActivity() {
 
         // Configurar la pantalla
         setContent {
-            AuthorScreen(navController = rememberNavController(), authorViewModel = authorViewModel)
+            Navigation()
         }
     }
 }

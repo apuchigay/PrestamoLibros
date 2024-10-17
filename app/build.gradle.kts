@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.registrocoches"
+    namespace = "com.example.prestamolibros"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.registrocoches"
+        applicationId = "com.example.prestamolibros"
         minSdk = 27
         targetSdk = 34
         versionCode = 1

@@ -7,16 +7,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
-import androidx.navigation.NavController
-import kotlinx.coroutines.launch
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
+import com.example.prestamolibros.DAO.AuthorDao
 import com.example.prestamolibros.Repository.AuthorRepository
 import com.example.prestamolibros.model.Author
+import com.example.prestamolibros.database.LoanSystemDatabase // Asegúrate de que la ruta es correcta
 import kotlinx.coroutines.launch
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 class AuthorViewModel(private val repository: AuthorRepository) : ViewModel() {
     var nombre by mutableStateOf("")
@@ -140,7 +143,6 @@ fun AuthorForm(viewModel: AuthorViewModel) {
             Text("Registrar Autor")
         }
 
-
         // Mostrar mensaje de éxito si la inserción es exitosa
         if (viewModel.isSuccess) {
             Spacer(modifier = Modifier.height(16.dp))
@@ -151,7 +153,18 @@ fun AuthorForm(viewModel: AuthorViewModel) {
 
 // Composable principal para mostrar el formulario
 @Composable
-fun AuthorScreen(navController: NavController, authorViewModel: AuthorViewModel) {
+fun AuthorScreen(navController: NavController, viewModel: AuthorViewModel) {
+    // Instanciar el AuthorDao aquí
+    val context = LocalContext.current
+    val db = LoanSystemDatabase.getDatabase(context) // Asegúrate de tener acceso a tu base de datos
+    val authorDao = db.authorDao() // Obtener el DAO de autores
+
+    // Instanciar el AuthorViewModel usando la fábrica
+    val repository = AuthorRepository(authorDao) // Pasar el authorDao al repositorio
+    val viewModel: AuthorViewModel = viewModel(
+        factory = AuthorViewModelFactory(repository)
+    )
+
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -159,12 +172,13 @@ fun AuthorScreen(navController: NavController, authorViewModel: AuthorViewModel)
     ) {
         Text(text = "Registrar Autor")
 
-        AuthorForm(viewModel = authorViewModel)
+        // Pasa el viewModel a AuthorForm
+        AuthorForm(viewModel = viewModel)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (authorViewModel.isSuccess) {
-            Text(text = authorViewModel.successMessage, color = Color.Green)
+        if (viewModel.isSuccess) {
+            Text(text = viewModel.successMessage, color = Color.Green)
         }
 
         Button(onClick = { navController.navigate("main_screen") }) {
@@ -172,3 +186,4 @@ fun AuthorScreen(navController: NavController, authorViewModel: AuthorViewModel)
         }
     }
 }
+
