@@ -1,6 +1,8 @@
 package com.example.prestamolibros.Screen
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,13 +15,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.example.prestamolibros.DAO.AuthorDao
 import com.example.prestamolibros.Repository.AuthorRepository
 import com.example.prestamolibros.model.Author
-import com.example.prestamolibros.database.LoanSystemDatabase // Asegúrate de que la ruta es correcta
 import kotlinx.coroutines.launch
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.prestamolibros.database.LoanSystemDatabase
 
 class AuthorViewModel(private val repository: AuthorRepository) : ViewModel() {
     var nombre by mutableStateOf("")
@@ -32,6 +33,9 @@ class AuthorViewModel(private val repository: AuthorRepository) : ViewModel() {
 
     var isSuccess by mutableStateOf(false)
     var successMessage by mutableStateOf("")
+
+    // Lista para almacenar autores
+    var authorsList by mutableStateOf(listOf<Author>())
 
     fun insertAuthor() {
         if (validateFields()) {
@@ -53,6 +57,13 @@ class AuthorViewModel(private val repository: AuthorRepository) : ViewModel() {
                     successMessage = "Error al registrar el autor: ${e.message}"
                 }
             }
+        }
+    }
+
+    // Función para obtener la lista de autores
+    fun getAuthors() {
+        viewModelScope.launch {
+            authorsList = repository.getAllAuthors() // Actualiza la lista de autores
         }
     }
 
@@ -86,7 +97,7 @@ class AuthorViewModelFactory(private val repository: AuthorRepository) : ViewMod
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AuthorForm(viewModel: AuthorViewModel) {
+fun AuthorForm(viewModel: AuthorViewModel, navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
 
     Column(
@@ -137,23 +148,49 @@ fun AuthorForm(viewModel: AuthorViewModel) {
         // Botón para registrar el autor
         Button(onClick = {
             coroutineScope.launch {
-                viewModel.insertAuthor() // Llamada directa a la función
+                viewModel.insertAuthor()
             }
         }) {
             Text("Registrar Autor")
         }
 
-        // Mostrar mensaje de éxito si la inserción es exitosa
-        if (viewModel.isSuccess) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = viewModel.successMessage, color = MaterialTheme.colorScheme.primary)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Botón para listar autores
+        Button(onClick = {
+            viewModel.getAuthors() // Llama a la función para obtener autores
+        }) {
+            Text("Listar Autores")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Botón para volver al menú principal
+        Button(onClick = { navController.navigate("main_screen") }) {
+            Text(text = "Volver al Menú Principal")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        // Mostrar la lista de autores usando LazyColumn
+        LazyColumn {
+            items(viewModel.authorsList) { author ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(text = "Nombre: ${author.nombre} ${author.apellido}")
+                        Text(text = "Nacionalidad: ${author.nacionalidad}")
+                    }
+                }
+            }
         }
     }
 }
 
-// Composable principal para mostrar el formulario
 @Composable
-fun AuthorScreen(navController: NavController, viewModel: AuthorViewModel) {
+fun AuthorScreen(navController: NavController) {
     // Instanciar el AuthorDao aquí
     val context = LocalContext.current
     val db = LoanSystemDatabase.getDatabase(context) // Asegúrate de tener acceso a tu base de datos
@@ -172,8 +209,8 @@ fun AuthorScreen(navController: NavController, viewModel: AuthorViewModel) {
     ) {
         Text(text = "Registrar Autor")
 
-        // Pasa el viewModel a AuthorForm
-        AuthorForm(viewModel = viewModel)
+        // Pass the navController to AuthorForm
+        AuthorForm(viewModel = viewModel, navController = navController)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -181,9 +218,9 @@ fun AuthorScreen(navController: NavController, viewModel: AuthorViewModel) {
             Text(text = viewModel.successMessage, color = Color.Green)
         }
 
+        // Aquí es donde el navController se usa para navegar a otra pantalla
         Button(onClick = { navController.navigate("main_screen") }) {
             Text(text = "Volver al Menú Principal")
         }
     }
 }
-

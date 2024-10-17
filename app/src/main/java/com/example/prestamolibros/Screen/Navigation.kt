@@ -25,7 +25,7 @@ fun Navigation() {
             val repository = AuthorRepository(authorDao)
             val authorViewModel: AuthorViewModel = viewModel(factory = AuthorViewModelFactory(repository))
 
-            AuthorScreen(navController, authorViewModel) //Codigo de error
+            AuthorScreen(navController)
         }
 
         composable("book_screen") { BookScreen(navController) }
