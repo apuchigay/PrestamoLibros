@@ -67,6 +67,45 @@ class AuthorViewModel(private val repository: AuthorRepository) : ViewModel() {
         }
     }
 
+    // Funcion para eliminar autor
+    fun deleteAuthor(author: Author) {
+        viewModelScope.launch {
+            try {
+                repository.deleteAuthor(author)
+                isSuccess = true
+                successMessage = "El autor ${author.nombre} ${author.apellido} ha sido eliminado."
+                getAuthors() // Actualizar la lista tras la eliminación
+            } catch (e: Exception) {
+                isSuccess = false
+                successMessage = "Error al eliminar el autor: ${e.message}"
+            }
+        }
+    }
+
+    // Funcion para actualizar autor
+    fun updateAuthor(author: Author) {
+        if (validateFields()) {
+            val updatedAuthor = Author(
+                autorId = author.autorId, // Mantener el mismo ID del autor
+                nombre = nombre,
+                apellido = apellido,
+                nacionalidad = nacionalidad
+            )
+
+            viewModelScope.launch {
+                try {
+                    repository.updateAuthor(updatedAuthor)
+                    isSuccess = true
+                    successMessage = "El autor ${author.nombre} ${author.apellido} ha sido actualizado."
+                    getAuthors() // Actualizar la lista tras la actualización
+                } catch (e: Exception) {
+                    isSuccess = false
+                    successMessage = "Error al actualizar el autor: ${e.message}"
+                }
+            }
+        }
+    }
+
     private fun validateFields(): Boolean {
         errorNombre = if (nombre.isBlank()) "El nombre es obligatorio" else ""
         errorApellido = if (apellido.isBlank()) "El apellido es obligatorio" else ""
@@ -182,45 +221,68 @@ fun AuthorForm(viewModel: AuthorViewModel, navController: NavController) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(text = "Nombre: ${author.nombre} ${author.apellido}")
                         Text(text = "Nacionalidad: ${author.nacionalidad}")
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Botón para actualizar el autor
+                        Button(onClick = {
+                            viewModel.nombre = author.nombre
+                            viewModel.apellido = author.apellido
+                            viewModel.nacionalidad = author.nacionalidad
+                            viewModel.updateAuthor(author)
+                        }) {
+                            Text("Actualizar")
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Botón para eliminar el autor
+                        Button(
+                            onClick = { viewModel.deleteAuthor(author) },
+
+                        ) {
+                            Text("Eliminar", color = Color.White)
+                        }
                     }
                 }
             }
         }
     }
-}
 
-@Composable
-fun AuthorScreen(navController: NavController) {
-    // Instanciar el AuthorDao aquí
-    val context = LocalContext.current
-    val db = LoanSystemDatabase.getDatabase(context) // Asegúrate de tener acceso a tu base de datos
-    val authorDao = db.authorDao() // Obtener el DAO de autores
+    @Composable
+    fun AuthorScreen(navController: NavController) {
+        // Instanciar el AuthorDao aquí
+        val context = LocalContext.current
+        val db =
+            LoanSystemDatabase.getDatabase(context) // Asegúrate de tener acceso a tu base de datos
+        val authorDao = db.authorDao() // Obtener el DAO de autores
 
-    // Instanciar el AuthorViewModel usando la fábrica
-    val repository = AuthorRepository(authorDao) // Pasar el authorDao al repositorio
-    val viewModel: AuthorViewModel = viewModel(
-        factory = AuthorViewModelFactory(repository)
-    )
+        // Instanciar el AuthorViewModel usando la fábrica
+        val repository = AuthorRepository(authorDao) // Pasar el authorDao al repositorio
+        val viewModel: AuthorViewModel = viewModel(
+            factory = AuthorViewModelFactory(repository)
+        )
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = "Registrar Autor")
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = "Registrar Autor")
 
-        // Pass the navController to AuthorForm
-        AuthorForm(viewModel = viewModel, navController = navController)
+            // Pass the navController to AuthorForm
+            AuthorForm(viewModel = viewModel, navController = navController)
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        if (viewModel.isSuccess) {
-            Text(text = viewModel.successMessage, color = Color.Green)
-        }
+            if (viewModel.isSuccess) {
+                Text(text = viewModel.successMessage, color = Color.Green)
+            }
 
-        // Aquí es donde el navController se usa para navegar a otra pantalla
-        Button(onClick = { navController.navigate("main_screen") }) {
-            Text(text = "Volver al Menú Principal")
+            // Aquí es donde el navController se usa para navegar a otra pantalla
+            Button(onClick = { navController.navigate("main_screen") }) {
+                Text(text = "Volver al Menú Principal")
+            }
         }
     }
 }
