@@ -37,6 +37,10 @@ class AuthorViewModel(private val repository: AuthorRepository) : ViewModel() {
     // Lista para almacenar autores
     var authorsList by mutableStateOf(listOf<Author>())
 
+    // Variables para la actualización
+    var isUpdating by mutableStateOf(false) // Controla si estamos en modo actualización
+    var authorToUpdate: Author? = null // Guarda el autor que se está actualizando
+
     fun insertAuthor() {
         if (validateFields()) {
             val author = Author(
@@ -52,6 +56,7 @@ class AuthorViewModel(private val repository: AuthorRepository) : ViewModel() {
                     isSuccess = true
                     successMessage = "El autor $nombre $apellido ha sido registrado con éxito."
                     clearFields()
+                    getAuthors() // Actualizar la lista después de la inserción
                 } catch (e: Exception) {
                     isSuccess = false
                     successMessage = "Error al registrar el autor: ${e.message}"
@@ -64,6 +69,56 @@ class AuthorViewModel(private val repository: AuthorRepository) : ViewModel() {
     fun getAuthors() {
         viewModelScope.launch {
             authorsList = repository.getAllAuthors() // Actualiza la lista de autores
+        }
+    }
+
+    // Función para iniciar la actualización de un autor (cargar los datos en el formulario)
+    fun updateAuthorDetails(author: Author) {
+        nombre = author.nombre
+        apellido = author.apellido
+        nacionalidad = author.nacionalidad
+
+        isUpdating = true // Cambia al modo actualización
+        authorToUpdate = author // Guarda el autor que se está actualizando
+    }
+
+    // Función para realizar la actualización del autor
+    fun updateAuthor() {
+        if (validateFields() && authorToUpdate != null) {
+            viewModelScope.launch {
+                try {
+                    // Crear un nuevo autor con los datos actualizados
+                    val updatedAuthor = authorToUpdate!!.copy(
+                        nombre = nombre,
+                        apellido = apellido,
+                        nacionalidad = nacionalidad
+                    )
+
+                    repository.updateAuthor(updatedAuthor)
+                    isSuccess = true
+                    successMessage = "El autor ${updatedAuthor.nombre} ${updatedAuthor.apellido} ha sido actualizado con éxito."
+                    clearFields()
+                    getAuthors() // Volver a cargar la lista de autores
+                    resetForm() // Restablecer el estado del formulario
+                } catch (e: Exception) {
+                    isSuccess = false
+                    successMessage = "Error al actualizar el autor: ${e.message}"
+                }
+            }
+        }
+    }
+
+    fun deleteAuthor(author: Author) {
+        viewModelScope.launch {
+            try {
+                repository.deleteAuthor(author)
+                isSuccess = true
+                successMessage = "El autor ${author.nombre} ${author.apellido} ha sido eliminado con éxito."
+                getAuthors() // Volver a cargar la lista de autores
+            } catch (e: Exception) {
+                isSuccess = false
+                successMessage = "Error al eliminar el autor: ${e.message}"
+            }
         }
     }
 
@@ -83,7 +138,14 @@ class AuthorViewModel(private val repository: AuthorRepository) : ViewModel() {
         errorApellido = ""
         errorNacionalidad = ""
     }
+
+    // Función para restablecer el formulario después de la actualización
+    private fun resetForm() {
+        isUpdating = false
+        authorToUpdate = null
+    }
 }
+
 
 class AuthorViewModelFactory(private val repository: AuthorRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -145,13 +207,17 @@ fun AuthorForm(viewModel: AuthorViewModel, navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Botón para registrar el autor
+        // Botón para registrar o actualizar el autor
         Button(onClick = {
             coroutineScope.launch {
-                viewModel.insertAuthor()
+                if (viewModel.isUpdating) {
+                    viewModel.updateAuthor() // Actualizar autor
+                } else {
+                    viewModel.insertAuthor() // Registrar autor
+                }
             }
         }) {
-            Text("Registrar Autor")
+            Text(if (viewModel.isUpdating) "Actualizar Autor" else "Registrar Autor")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -171,6 +237,7 @@ fun AuthorForm(viewModel: AuthorViewModel, navController: NavController) {
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
         // Mostrar la lista de autores usando LazyColumn
         LazyColumn {
             items(viewModel.authorsList) { author ->
@@ -182,12 +249,33 @@ fun AuthorForm(viewModel: AuthorViewModel, navController: NavController) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(text = "Nombre: ${author.nombre} ${author.apellido}")
                         Text(text = "Nacionalidad: ${author.nacionalidad}")
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row {
+                            // Botón para actualizar autor
+                            Button(onClick = {
+                                viewModel.updateAuthorDetails(author) // Cargar datos del autor para actualizar
+                            }) {
+                                Text("Actualizar")
+                            }
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            // Botón para eliminar autor
+                            Button(onClick = {
+                                viewModel.deleteAuthor(author) // Eliminar el autor
+                            }) {
+                                Text("Eliminar")
+                            }
+                        }
                     }
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun AuthorScreen(navController: NavController) {
