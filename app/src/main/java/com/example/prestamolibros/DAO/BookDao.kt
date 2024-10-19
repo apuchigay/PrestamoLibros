@@ -1,6 +1,7 @@
 package com.example.prestamolibros.DAO
 
 import androidx.room.*
+import com.example.prestamolibros.model.Author
 import com.example.prestamolibros.model.Book
 
 @Dao
@@ -20,4 +21,7 @@ interface BookDao {
 
     @Query("SELECT * FROM libros WHERE libroId = :id")
     suspend fun getBookById(id: Int): Book?
+
+    @Query("SELECT * FROM autores")
+    suspend fun getAllAuthors(): List<Author>
 }
