@@ -302,8 +302,6 @@ fun BookForm(viewModel: BookViewModel, navController: NavController) {
     }
 }
 
-
-
 @Composable
 fun BookScreen(navController: NavController) {
     val context = LocalContext.current
