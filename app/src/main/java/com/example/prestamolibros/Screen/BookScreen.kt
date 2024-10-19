@@ -1,5 +1,6 @@
 package com.example.prestamolibros.Screen
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,6 +47,10 @@ class BookViewModel(private val repository: BookRepository) : ViewModel() {
     var authorsList by mutableStateOf(listOf<Author>())
     var expanded by mutableStateOf(false)
 
+    // Variables para la actualización
+    var isUpdating by mutableStateOf(false) // Controla si estamos en modo actualización
+    var bookToUpdate: Book? = null // Guarda el libro que se está actualizando
+
     fun insertBook() {
         if (validateFields()) {
             val book = Book(
@@ -81,6 +86,57 @@ class BookViewModel(private val repository: BookRepository) : ViewModel() {
         }
     }
 
+    // Función para iniciar la actualización de un libro (cargar los datos en el formulario)
+    fun updateBookDetails(book: Book) {
+        titulo = book.titulo
+        genero = book.genero
+        selectedAuthor = authorsList.find { it.autorId == book.autorId } // Seleccionar el autor correspondiente
+
+        isUpdating = true // Cambia al modo actualización
+        bookToUpdate = book // Guarda el libro que se está actualizando
+    }
+
+    // Función para realizar la actualización del libro
+    fun updateBook() {
+        if (validateFields() && bookToUpdate != null) {
+            viewModelScope.launch {
+                try {
+                    // Crear un nuevo libro con los datos actualizados
+                    val updatedBook = bookToUpdate!!.copy(
+                        titulo = titulo,
+                        genero = genero,
+                        autorId = selectedAuthor?.autorId ?: 0
+                    )
+
+                    repository.updateBook(updatedBook)
+                    isSuccess = true
+                    successMessage = "El libro '${updatedBook.titulo}' ha sido actualizado con éxito."
+                    clearFields()
+                    getBooks() // Volver a cargar la lista de libros
+                    resetForm() // Restablecer el estado del formulario
+                } catch (e: Exception) {
+                    isSuccess = false
+                    successMessage = "Error al actualizar el libro: ${e.message}"
+                }
+            }
+        }
+    }
+
+    // Función para eliminar un libro
+    fun deleteBook(book: Book) {
+        viewModelScope.launch {
+            try {
+                repository.deleteBook(book)
+                isSuccess = true
+                successMessage = "El libro '${book.titulo}' ha sido eliminado con éxito."
+                getBooks() // Volver a cargar la lista de libros
+            } catch (e: Exception) {
+                isSuccess = false
+                successMessage = "Error al eliminar el libro: ${e.message}"
+            }
+        }
+    }
+
     private fun validateFields(): Boolean {
         errorTitulo = if (titulo.isBlank()) "El título es obligatorio" else ""
         errorGenero = if (genero.isBlank()) "El género es obligatorio" else ""
@@ -97,8 +153,13 @@ class BookViewModel(private val repository: BookRepository) : ViewModel() {
         errorGenero = ""
         errorAuthor = ""
     }
-}
 
+    // Función para restablecer el formulario después de la actualización
+    private fun resetForm() {
+        isUpdating = false
+        bookToUpdate = null
+    }
+}
 
 class BookViewModelFactory(private val repository: BookRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -166,12 +227,17 @@ fun BookForm(viewModel: BookViewModel, navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Cambiar el botón según el modo de actualización o registro
         Button(onClick = {
             coroutineScope.launch {
-                viewModel.insertBook() // Registrar libro
+                if (viewModel.isUpdating) {
+                    viewModel.updateBook() // Actualizar libro
+                } else {
+                    viewModel.insertBook() // Registrar libro
+                }
             }
         }) {
-            Text("Registrar Libro")
+            Text(if (viewModel.isUpdating) "Actualizar Libro" else "Registrar Libro")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -180,6 +246,13 @@ fun BookForm(viewModel: BookViewModel, navController: NavController) {
             viewModel.getBooks() // Listar libros
         }) {
             Text("Listar Libros")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Botón para volver al menú principal
+        Button(onClick = { navController.navigate("main_screen") }) {
+            Text(text = "Volver al Menú Principal")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -195,10 +268,37 @@ fun BookForm(viewModel: BookViewModel, navController: NavController) {
                         Text(text = "Título: ${book.titulo}")
                         Text(text = "Género: ${book.genero}")
                         Text(text = "Autor: ${viewModel.authorsList.firstOrNull { it.autorId == book.autorId }?.let { "${it.nombre} ${it.apellido}" } ?: "Desconocido"}")
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row {
+                            // Botón para actualizar libro
+                            Button(onClick = {
+                                viewModel.updateBookDetails(book) // Cargar datos del libro para actualizar
+                            }) {
+                                Text("Actualizar")
+                            }
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            // Botón para eliminar libro
+                            Button(onClick = {
+                                coroutineScope.launch {
+                                    viewModel.deleteBook(book) // Eliminar el libro
+                                }
+                            }) {
+                                Text("Eliminar")
+                            }
+                        }
                     }
                 }
             }
         }
+    }
+
+    // Mostrar mensajes de éxito o error
+    if (viewModel.isSuccess) {
+        Toast.makeText(LocalContext.current, viewModel.successMessage, Toast.LENGTH_SHORT).show()
     }
 }
 
