@@ -1,17 +1,22 @@
 package com.example.prestamolibros.Screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -56,7 +61,7 @@ class AuthorViewModel(private val repository: AuthorRepository) : ViewModel() {
                     isSuccess = true
                     successMessage = "El autor $nombre $apellido ha sido registrado con éxito."
                     clearFields()
-                    getAuthors() // Actualizar la lista después de la inserción
+                    // Se eliminó la llamada a getAuthors() aquí
                 } catch (e: Exception) {
                     isSuccess = false
                     successMessage = "Error al registrar el autor: ${e.message}"
@@ -162,111 +167,145 @@ class AuthorViewModelFactory(private val repository: AuthorRepository) : ViewMod
 fun AuthorForm(viewModel: AuthorViewModel, navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
 
-    Column(
+    // Contenedor principal
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(16.dp), // Espaciado alrededor del contenedor
+        contentAlignment = Alignment.Center // Centrado vertical y horizontal
     ) {
-        TextField(
-            value = viewModel.nombre,
-            onValueChange = { viewModel.nombre = it },
-            label = { Text("Nombre del Autor") },
-            isError = viewModel.errorNombre.isNotEmpty(),
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next)
-        )
-        if (viewModel.errorNombre.isNotEmpty()) {
-            Text(text = viewModel.errorNombre, color = MaterialTheme.colorScheme.error)
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TextField(
-            value = viewModel.apellido,
-            onValueChange = { viewModel.apellido = it },
-            label = { Text("Apellido del Autor") },
-            isError = viewModel.errorApellido.isNotEmpty(),
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next)
-        )
-        if (viewModel.errorApellido.isNotEmpty()) {
-            Text(text = viewModel.errorApellido, color = MaterialTheme.colorScheme.error)
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TextField(
-            value = viewModel.nacionalidad,
-            onValueChange = { viewModel.nacionalidad = it },
-            label = { Text("Nacionalidad") },
-            isError = viewModel.errorNacionalidad.isNotEmpty(),
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done)
-        )
-        if (viewModel.errorNacionalidad.isNotEmpty()) {
-            Text(text = viewModel.errorNacionalidad, color = MaterialTheme.colorScheme.error)
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Botón para registrar o actualizar el autor
-        Button(onClick = {
-            coroutineScope.launch {
-                if (viewModel.isUpdating) {
-                    viewModel.updateAuthor() // Actualizar autor
-                } else {
-                    viewModel.insertAuthor() // Registrar autor
-                }
+        // Contenedor para el formulario
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White, shape = RoundedCornerShape(8.dp)) // Fondo blanco y bordes redondeados
+                .padding(16.dp), // Espaciado interno del contenedor
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            TextField(
+                value = viewModel.nombre,
+                onValueChange = { viewModel.nombre = it },
+                label = { Text("Nombre del Autor") },
+                isError = viewModel.errorNombre.isNotEmpty(),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = Color.White // Color de fondo blanco
+                )
+            )
+            if (viewModel.errorNombre.isNotEmpty()) {
+                Text(text = viewModel.errorNombre, color = MaterialTheme.colorScheme.error)
             }
-        }) {
-            Text(if (viewModel.isUpdating) "Actualizar Autor" else "Registrar Autor")
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // Botón para listar autores
-        Button(onClick = {
-            viewModel.getAuthors() // Llama a la función para obtener autores
-        }) {
-            Text("Listar Autores")
-        }
+            TextField(
+                value = viewModel.apellido,
+                onValueChange = { viewModel.apellido = it },
+                label = { Text("Apellido del Autor") },
+                isError = viewModel.errorApellido.isNotEmpty(),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = Color.White // Color de fondo blanco
+                )
+            )
+            if (viewModel.errorApellido.isNotEmpty()) {
+                Text(text = viewModel.errorApellido, color = MaterialTheme.colorScheme.error)
+            }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // Botón para volver al menú principal
-        Button(onClick = { navController.navigate("main_screen") }) {
-            Text(text = "Volver al Menú Principal")
-        }
+            TextField(
+                value = viewModel.nacionalidad,
+                onValueChange = { viewModel.nacionalidad = it },
+                label = { Text("Nacionalidad") },
+                isError = viewModel.errorNacionalidad.isNotEmpty(),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = Color.White // Color de fondo blanco
+                )
+            )
+            if (viewModel.errorNacionalidad.isNotEmpty()) {
+                Text(text = viewModel.errorNacionalidad, color = MaterialTheme.colorScheme.error)
+            }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // Mostrar la lista de autores usando LazyColumn
-        LazyColumn {
-            items(viewModel.authorsList) { author ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = "Nombre: ${author.nombre} ${author.apellido}")
-                        Text(text = "Nacionalidad: ${author.nacionalidad}")
+            // Botón para registrar o actualizar el autor
+            Button(
+                onClick = {
+                    coroutineScope.launch {
+                        if (viewModel.isUpdating) {
+                            viewModel.updateAuthor() // Actualizar autor
+                        } else {
+                            viewModel.insertAuthor() // Registrar autor
+                        }
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0b76d6)) // Color del botón
+            ) {
+                Text(if (viewModel.isUpdating) "Actualizar Autor" else "Registrar Autor", color = Color.White)
+            }
 
-                        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                        Row {
-                            // Botón para actualizar autor
-                            Button(onClick = {
-                                viewModel.updateAuthorDetails(author) // Cargar datos del autor para actualizar
-                            }) {
-                                Text("Actualizar")
-                            }
+            // Botón para listar autores
+            Button(
+                onClick = {
+                    viewModel.getAuthors() // Llama a la función para obtener autores solo al hacer clic en este botón
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0b76d6)) // Color del botón
+            ) {
+                Text("Listar Autores", color = Color.White)
+            }
 
-                            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                            // Botón para eliminar autor
-                            Button(onClick = {
-                                viewModel.deleteAuthor(author) // Eliminar el autor
-                            }) {
-                                Text("Eliminar")
+            // Botón para volver al menú principal
+            Button(
+                onClick = { navController.navigate("main_screen") },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0b76d6)) // Color del botón
+            ) {
+                Text(text = "Volver al Menú Principal", color = Color.White)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Mostrar la lista de autores usando LazyColumn
+            LazyColumn {
+                items(viewModel.authorsList) { author ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(text = "Nombre: ${author.nombre} ${author.apellido}")
+                            Text(text = "Nacionalidad: ${author.nacionalidad}")
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Row {
+                                // Botón para actualizar autor
+                                Button(
+                                    onClick = {
+                                        viewModel.updateAuthorDetails(author) // Cargar datos del autor para actualizar
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0b76d6)) // Color del botón
+                                ) {
+                                    Text("Actualizar", color = Color.White)
+                                }
+
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                // Botón para eliminar autor
+                                Button(
+                                    onClick = {
+                                        viewModel.deleteAuthor(author) // Eliminar el autor
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0b76d6)) // Color del botón
+                                ) {
+                                    Text("Eliminar", color = Color.White)
+                                }
                             }
                         }
                     }
@@ -290,25 +329,46 @@ fun AuthorScreen(navController: NavController) {
         factory = AuthorViewModelFactory(repository)
     )
 
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+    // Fondo degradado
+    val gradient = Brush.verticalGradient(
+        colors = listOf(Color(0xFF0b76d6), Color(0xFF0eb3aa))
+    )
+
+    // Contenedor principal
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(gradient), // Aplicar el fondo degradado
+        contentAlignment = Alignment.Center // Centrar el contenido
     ) {
-        Text(text = "Registrar Autor")
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Registrar Autor",
+                fontSize = 32.sp, // Tamaño de fuente más grande
+                fontWeight = FontWeight.Bold, // Texto en negrita
+                color = Color.White, // Color del texto blanco
+                modifier = Modifier.padding(bottom = 16.dp) // Espaciado debajo del título
+            )
 
-        // Pass the navController to AuthorForm
-        AuthorForm(viewModel = viewModel, navController = navController)
+            // Pasar el navController a AuthorForm
+            AuthorForm(viewModel = viewModel, navController = navController)
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        if (viewModel.isSuccess) {
-            Text(text = viewModel.successMessage, color = Color.Green)
-        }
+            if (viewModel.isSuccess) {
+                Text(text = viewModel.successMessage, color = Color.Green)
+            }
 
-        // Aquí es donde el navController se usa para navegar a otra pantalla
-        Button(onClick = { navController.navigate("main_screen") }) {
-            Text(text = "Volver al Menú Principal")
+            // Botón para volver al menú principal
+            Button(onClick = { navController.navigate("main_screen") }) {
+                Text(text = "Volver al Menú Principal")
+            }
         }
     }
 }
