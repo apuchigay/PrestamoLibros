@@ -77,7 +77,6 @@ class LoanViewModel(private val repository: LoanRepository) : ViewModel() {
                     isSuccess = true
                     successMessage = "El préstamo ha sido registrado con éxito."
                     clearFields()
-                    getLoans()
                 } catch (e: Exception) {
                     isSuccess = false
                     successMessage = "Error al registrar el préstamo: ${e.message}"
@@ -195,7 +194,6 @@ fun LoanForm(viewModel: LoanViewModel, navController: NavController) {
 
     LaunchedEffect(Unit) {
         viewModel.getBooksAndMembers() // Cargar libros y miembros al iniciar
-        viewModel.getLoans() // Cargar préstamos al iniciar
     }
 
     // Fondo degradado
