@@ -7,16 +7,21 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -193,145 +198,196 @@ fun LoanForm(viewModel: LoanViewModel, navController: NavController) {
         viewModel.getLoans() // Cargar préstamos al iniciar
     }
 
+    // Fondo degradado
+    val gradient = Brush.horizontalGradient(
+        colors = listOf(Color(0xFF0b76d6), Color(0xFF0eb3aa))
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(gradient) // Aplicar el degradado como fondo
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        TextField(
-            value = viewModel.fechaPrestamo,
-            onValueChange = { viewModel.fechaPrestamo = it },
-            label = { Text("Fecha de Préstamo") },
-            isError = viewModel.errorFechaPrestamo.isNotEmpty(),
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next)
-        )
-        if (viewModel.errorFechaPrestamo.isNotEmpty()) {
-            Text(text = viewModel.errorFechaPrestamo, color = MaterialTheme.colorScheme.error)
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TextField(
-            value = viewModel.fechaDevolucion,
-            onValueChange = { viewModel.fechaDevolucion = it },
-            label = { Text("Fecha de Devolución") },
-            isError = viewModel.errorFechaDevolucion.isNotEmpty(),
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next)
-        )
-        if (viewModel.errorFechaDevolucion.isNotEmpty()) {
-            Text(text = viewModel.errorFechaDevolucion, color = MaterialTheme.colorScheme.error)
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Dropdown para seleccionar libro
-        MyDropMenuBooks(
-            bookList = viewModel.booksList,
-            selectedBook = viewModel.selectedBook,
-            onBookSelected = { selectedBook ->
-                viewModel.selectedBook = selectedBook
-            }
+        Text(
+            text = "Registrar Préstamo",
+            fontSize = 24.sp, // Tamaño de fuente más grande
+            fontWeight = FontWeight.Bold, // Negrita
+            color = Color.White, // Cambiar el color del texto a negro
+            modifier = Modifier.padding(bottom = 16.dp) // Espaciado
         )
 
-        if (viewModel.errorBook.isNotEmpty()) {
-            Text(text = viewModel.errorBook, color = MaterialTheme.colorScheme.error)
-        }
+        // Contenedor con fondo blanco
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(16.dp) // Espaciado interno
+                .clip(RoundedCornerShape(8.dp)) // Esquinas redondeadas
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Dropdown para seleccionar miembro
-        MyDropMenuMembers(
-            memberList = viewModel.membersList,
-            selectedMember = viewModel.selectedMember,
-            onMemberSelected = { selectedMember ->
-                viewModel.selectedMember = selectedMember
-            }
-        )
-
-        if (viewModel.errorMember.isNotEmpty()) {
-            Text(text = viewModel.errorMember, color = MaterialTheme.colorScheme.error)
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Botón de acción para registrar o actualizar préstamo
-        Button(onClick = {
-            coroutineScope.launch {
-                if (viewModel.isUpdating) {
-                    viewModel.updateLoan() // Actualizar préstamo
-                } else {
-                    viewModel.insertLoan() // Registrar préstamo
+                // Campo de texto para fecha de préstamo
+                TextField(
+                    value = viewModel.fechaPrestamo,
+                    onValueChange = { viewModel.fechaPrestamo = it },
+                    label = { Text("Fecha de Préstamo") },
+                    isError = viewModel.errorFechaPrestamo.isNotEmpty(),
+                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color.Transparent // Sin fondo
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (viewModel.errorFechaPrestamo.isNotEmpty()) {
+                    Text(text = viewModel.errorFechaPrestamo, color = MaterialTheme.colorScheme.error)
                 }
-            }
-        }) {
-            Text(if (viewModel.isUpdating) "Actualizar Préstamo" else "Registrar Préstamo")
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-        // Botón para listar los préstamos
-        Button(onClick = {
-            viewModel.getLoans() // Cargar préstamos
-        }) {
-            Text("Listar Préstamos")
-        }
+                // Campo de texto para fecha de devolución
+                TextField(
+                    value = viewModel.fechaDevolucion,
+                    onValueChange = { viewModel.fechaDevolucion = it },
+                    label = { Text("Fecha de Devolución") },
+                    isError = viewModel.errorFechaDevolucion.isNotEmpty(),
+                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color.Transparent // Sin fondo
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (viewModel.errorFechaDevolucion.isNotEmpty()) {
+                    Text(text = viewModel.errorFechaDevolucion, color = MaterialTheme.colorScheme.error)
+                }
 
-        Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-        // Botón para volver al menú principal
-        Button(onClick = { navController.navigate("main_screen") }) {
-            Text(text = "Volver al Menú Principal")
-        }
+                // Dropdown para seleccionar libro
+                MyDropMenuBooks(
+                    bookList = viewModel.booksList,
+                    selectedBook = viewModel.selectedBook,
+                    onBookSelected = { selectedBook -> viewModel.selectedBook = selectedBook }
+                )
+                if (viewModel.errorBook.isNotEmpty()) {
+                    Text(text = viewModel.errorBook, color = MaterialTheme.colorScheme.error)
+                }
 
-        Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-        // Lista de préstamos con LazyColumn
-        LazyColumn {
-            items(viewModel.loanList) { loan ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = "Libro: ${viewModel.booksList.firstOrNull { it.libroId == loan.libroId }?.let { it.titulo } ?: "Desconocido"}")
-                        Text(text = "Miembro: ${viewModel.membersList.firstOrNull { it.miembroId == loan.miembroId }?.let { "${it.nombre} ${it.apellido}" } ?: "Desconocido"}")
-                        Text(text = "Fecha de Préstamo: ${loan.fechaPrestamo}")
-                        Text(text = "Fecha de Devolución: ${loan.fechaDevolucion}")
+                // Dropdown para seleccionar miembro
+                MyDropMenuMembers(
+                    memberList = viewModel.membersList,
+                    selectedMember = viewModel.selectedMember,
+                    onMemberSelected = { selectedMember -> viewModel.selectedMember = selectedMember }
+                )
+                if (viewModel.errorMember.isNotEmpty()) {
+                    Text(text = viewModel.errorMember, color = MaterialTheme.colorScheme.error)
+                }
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                        Row {
-                            // Botón para actualizar préstamo
-                            Button(onClick = {
-                                viewModel.updateLoanDetails(loan) // Cargar datos del préstamo para actualizar
-                            }) {
-                                Text("Actualizar")
+                // Botones de acción para registrar o actualizar préstamo
+                val buttonModifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+
+                Button(
+                    onClick = {
+                        coroutineScope.launch {
+                            if (viewModel.isUpdating) {
+                                viewModel.updateLoan() // Actualizar préstamo
+                            } else {
+                                viewModel.insertLoan() // Registrar préstamo
                             }
+                        }
+                    },
+                    modifier = buttonModifier,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0b76d6)) // Botón azul
+                ) {
+                    Text(text = if (viewModel.isUpdating) "Actualizar Préstamo" else "Registrar Préstamo", color = Color.White)
+                }
 
-                            Spacer(modifier = Modifier.width(8.dp))
+                // Botón para listar los préstamos
+                Button(
+                    onClick = { viewModel.getLoans() },
+                    modifier = buttonModifier,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0b76d6))
+                ) {
+                    Text(text = "Listar Préstamos", color = Color.White)
+                }
 
-                            // Botón para eliminar préstamo
-                            Button(onClick = {
-                                coroutineScope.launch {
-                                    viewModel.deleteLoan(loan) // Eliminar el préstamo
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Botón para volver al menú principal
+                Button(
+                    onClick = { navController.navigate("main_screen") },
+                    modifier = buttonModifier,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0b76d6))
+                ) {
+                    Text(text = "Volver al Menú Principal", color = Color.White)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Lista de préstamos con LazyColumn
+                LazyColumn {
+                    items(viewModel.loanList) { loan ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(text = "Libro: ${viewModel.booksList.firstOrNull { it.libroId == loan.libroId }?.let { it.titulo } ?: "Desconocido"}")
+                                Text(text = "Miembro: ${viewModel.membersList.firstOrNull { it.miembroId == loan.miembroId }?.let { "${it.nombre} ${it.apellido}" } ?: "Desconocido"}")
+                                Text(text = "Fecha de Préstamo: ${loan.fechaPrestamo}")
+                                Text(text = "Fecha de Devolución: ${loan.fechaDevolucion}")
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Row {
+                                    // Botón para actualizar préstamo
+                                    Button(
+                                        onClick = {
+                                            viewModel.updateLoanDetails(loan) // Cargar datos del préstamo para actualizar
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0b76d6)) // Botón azul
+                                    ) {
+                                        Text("Actualizar", color = Color.White)
+                                    }
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                    // Botón para eliminar préstamo
+                                    Button(
+                                        onClick = {
+                                            coroutineScope.launch {
+                                                viewModel.deleteLoan(loan) // Eliminar el préstamo
+                                            }
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0b76d6)) // Botón azul
+                                    ) {
+                                        Text("Eliminar", color = Color.White)
+                                    }
                                 }
-                            }) {
-                                Text("Eliminar")
                             }
                         }
                     }
                 }
+
+                // Mostrar mensajes de éxito o error
+                if (viewModel.isSuccess) {
+                    Text(text = viewModel.successMessage, color = Color.Green)
+                }
             }
         }
     }
-
-    // Mostrar mensajes de éxito o error
-    if (viewModel.isSuccess) {
-        Toast.makeText(LocalContext.current, viewModel.successMessage, Toast.LENGTH_SHORT).show()
-    }
 }
+
 
 
 @Composable
@@ -355,17 +411,9 @@ fun LoanScreen(navController: NavController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Registrar Préstamo")
-
-        // Formulario de préstamo
         LoanForm(viewModel = viewModel, navController = navController)
 
         Spacer(modifier = Modifier.height(16.dp))
-
-        // Muestra un mensaje de éxito si el préstamo fue registrado correctamente
-        if (viewModel.isSuccess) {
-            Text(text = viewModel.successMessage, color = Color.Green)
-        }
 
         // Botón para volver a la pantalla principal
         Button(onClick = { navController.navigate("main_screen") }) {
