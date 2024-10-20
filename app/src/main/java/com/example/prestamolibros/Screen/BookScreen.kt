@@ -1,22 +1,25 @@
 package com.example.prestamolibros.Screen
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -56,7 +59,8 @@ class BookViewModel(private val repository: BookRepository) : ViewModel() {
             val book = Book(
                 titulo = titulo,
                 genero = genero,
-                autorId = selectedAuthor?.autorId ?: 0 // Relacionar con el ID del autor seleccionado
+                autorId = selectedAuthor?.autorId
+                    ?: 0 // Relacionar con el ID del autor seleccionado
             )
 
             viewModelScope.launch {
@@ -90,7 +94,8 @@ class BookViewModel(private val repository: BookRepository) : ViewModel() {
     fun updateBookDetails(book: Book) {
         titulo = book.titulo
         genero = book.genero
-        selectedAuthor = authorsList.find { it.autorId == book.autorId } // Seleccionar el autor correspondiente
+        selectedAuthor =
+            authorsList.find { it.autorId == book.autorId } // Seleccionar el autor correspondiente
 
         isUpdating = true // Cambia al modo actualización
         bookToUpdate = book // Guarda el libro que se está actualizando
@@ -110,7 +115,8 @@ class BookViewModel(private val repository: BookRepository) : ViewModel() {
 
                     repository.updateBook(updatedBook)
                     isSuccess = true
-                    successMessage = "El libro '${updatedBook.titulo}' ha sido actualizado con éxito."
+                    successMessage =
+                        "El libro '${updatedBook.titulo}' ha sido actualizado con éxito."
                     clearFields()
                     getBooks() // Volver a cargar la lista de libros
                     resetForm() // Restablecer el estado del formulario
@@ -161,6 +167,7 @@ class BookViewModel(private val repository: BookRepository) : ViewModel() {
     }
 }
 
+
 class BookViewModelFactory(private val repository: BookRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(BookViewModel::class.java)) {
@@ -180,125 +187,174 @@ fun BookForm(viewModel: BookViewModel, navController: NavController) {
         viewModel.getAuthors() // Cargar autores cuando la vista se inicialice
     }
 
+    // Fondo degradado
+    val gradient = Brush.horizontalGradient(
+        colors = listOf(Color(0xFF0b76d6), Color(0xFF0eb3aa))
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(gradient) // Aplicar el degradado como fondo
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        TextField(
-            value = viewModel.titulo,
-            onValueChange = { viewModel.titulo = it },
-            label = { Text("Título del Libro") },
-            isError = viewModel.errorTitulo.isNotEmpty(),
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next)
+        Text(
+            text = "Registrar Libro",
+            fontSize = 24.sp, // Tamaño de fuente más grande
+            fontWeight = FontWeight.Bold, // Negrita
+            color = Color.White, // Color del texto
+            modifier = Modifier.padding(bottom = 16.dp) // Espaciado
         )
-        if (viewModel.errorTitulo.isNotEmpty()) {
-            Text(text = viewModel.errorTitulo, color = MaterialTheme.colorScheme.error)
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TextField(
-            value = viewModel.genero,
-            onValueChange = { viewModel.genero = it },
-            label = { Text("Género") },
-            isError = viewModel.errorGenero.isNotEmpty(),
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next)
-        )
-        if (viewModel.errorGenero.isNotEmpty()) {
-            Text(text = viewModel.errorGenero, color = MaterialTheme.colorScheme.error)
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Reemplazar el DropdownMenu por MyDropMenu
-        MyDropMenu(
-            authorList = viewModel.authorsList,
-            selectedAuthor = viewModel.selectedAuthor,
-            onAuthorSelected = { selectedAuthor ->
-                viewModel.selectedAuthor = selectedAuthor
+        // Contenedor para el formulario con fondo blanco y bordes redondeados
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White, shape = RoundedCornerShape(8.dp))
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Campos de texto sin fondo
+            TextField(
+                value = viewModel.titulo,
+                onValueChange = { viewModel.titulo = it },
+                label = { Text("Título del Libro") },
+                isError = viewModel.errorTitulo.isNotEmpty(),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.textFieldColors(containerColor = Color.Transparent) // Sin fondo
+            )
+            if (viewModel.errorTitulo.isNotEmpty()) {
+                Text(text = viewModel.errorTitulo, color = MaterialTheme.colorScheme.error)
             }
-        )
 
-        if (viewModel.errorAuthor.isNotEmpty()) {
-            Text(text = viewModel.errorAuthor, color = MaterialTheme.colorScheme.error)
-        }
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Cambiar el botón según el modo de actualización o registro
-        Button(onClick = {
-            coroutineScope.launch {
-                if (viewModel.isUpdating) {
-                    viewModel.updateBook() // Actualizar libro
-                } else {
-                    viewModel.insertBook() // Registrar libro
-                }
+            TextField(
+                value = viewModel.genero,
+                onValueChange = { viewModel.genero = it },
+                label = { Text("Género") },
+                isError = viewModel.errorGenero.isNotEmpty(),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.textFieldColors(containerColor = Color.Transparent) // Sin fondo
+            )
+            if (viewModel.errorGenero.isNotEmpty()) {
+                Text(text = viewModel.errorGenero, color = MaterialTheme.colorScheme.error)
             }
-        }) {
-            Text(if (viewModel.isUpdating) "Actualizar Libro" else "Registrar Libro")
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = {
-            viewModel.getBooks() // Listar libros
-        }) {
-            Text("Listar Libros")
-        }
+            // Menú desplegable para seleccionar el autor
+            MyDropMenu(
+                authorList = viewModel.authorsList,
+                selectedAuthor = viewModel.selectedAuthor,
+                onAuthorSelected = { selectedAuthor -> viewModel.selectedAuthor = selectedAuthor }
+            )
+            if (viewModel.errorAuthor.isNotEmpty()) {
+                Text(text = viewModel.errorAuthor, color = MaterialTheme.colorScheme.error)
+            }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // Botón para volver al menú principal
-        Button(onClick = { navController.navigate("main_screen") }) {
-            Text(text = "Volver al Menú Principal")
-        }
+            // Botones de acción
+            val buttonModifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = {
+                    coroutineScope.launch {
+                        if (viewModel.isUpdating) {
+                            viewModel.updateBook() // Actualizar libro
+                        } else {
+                            viewModel.insertBook() // Registrar libro
+                        }
+                    }
+                },
+                modifier = buttonModifier,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0b76d6)) // Botón azul
+            ) {
+                Text(text = if (viewModel.isUpdating) "Actualizar Libro" else "Registrar Libro", color = Color.White)
+            }
 
-        LazyColumn {
-            items(viewModel.bookList) { book ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = "Título: ${book.titulo}")
-                        Text(text = "Género: ${book.genero}")
-                        Text(text = "Autor: ${viewModel.authorsList.firstOrNull { it.autorId == book.autorId }?.let { "${it.nombre} ${it.apellido}" } ?: "Desconocido"}")
+            Button(
+                onClick = { viewModel.getBooks() },
+                modifier = buttonModifier,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0b76d6))
+            ) {
+                Text(text = "Listar Libros", color = Color.White)
+            }
 
-                        Spacer(modifier = Modifier.height(8.dp))
+            // Mostrar éxito
+            Spacer(modifier = Modifier.height(16.dp))
+            if (viewModel.isSuccess) {
+                Text(text = viewModel.successMessage, color = Color.Green)
+            }
 
-                        Row {
-                            // Botón para actualizar libro
-                            Button(onClick = {
-                                viewModel.updateBookDetails(book) // Cargar datos del libro para actualizar
-                            }) {
-                                Text("Actualizar")
-                            }
+            Spacer(modifier = Modifier.height(16.dp))
 
-                            Spacer(modifier = Modifier.width(8.dp))
+            Button(
+                onClick = { navController.navigate("main_screen") },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0b76d6))
+            ) {
+                Text(text = "Volver al Menú Principal", color = Color.White)
+            }
 
-                            // Botón para eliminar libro
-                            Button(onClick = {
-                                coroutineScope.launch {
-                                    viewModel.deleteBook(book) // Eliminar el libro
+            Spacer(modifier = Modifier.height(16.dp))
+
+            LazyColumn {
+                items(viewModel.bookList) { book ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(text = "Título: ${book.titulo}")
+                            Text(text = "Género: ${book.genero}")
+                            Text(
+                                text = "Autor: ${
+                                    viewModel.authorsList.firstOrNull { it.autorId == book.autorId }
+                                        ?.let { "${it.nombre} ${it.apellido}" } ?: "Desconocido"
+                                }"
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Row {
+                                // Botón para actualizar libro
+                                Button(
+                                    onClick = {
+                                        viewModel.updateBookDetails(book) // Cargar datos del libro para actualizar
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0b76d6)) // Botón azul
+                                ) {
+                                    Text("Actualizar", color = Color.White)
                                 }
-                            }) {
-                                Text("Eliminar")
+
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                // Botón para eliminar libro
+                                Button(
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            viewModel.deleteBook(book) // Eliminar el libro
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0b76d6)) // Botón azul
+                                ) {
+                                    Text("Eliminar", color = Color.White)
+                                }
                             }
                         }
                     }
                 }
             }
         }
-    }
-
-    // Mostrar mensajes de éxito o error
-    if (viewModel.isSuccess) {
-        Toast.makeText(LocalContext.current, viewModel.successMessage, Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -313,24 +369,20 @@ fun BookScreen(navController: NavController) {
         factory = BookViewModelFactory(repository)
     )
 
+    // Fondo degradado
+    val gradient = Brush.horizontalGradient(
+        colors = listOf(Color(0xFF0b76d6), Color(0xFF0eb3aa))
+    )
+
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(gradient) // Fondo degradado
+            .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Registrar Libro")
-
         BookForm(viewModel = viewModel, navController = navController)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (viewModel.isSuccess) {
-            Text(text = viewModel.successMessage, color = Color.Green)
-        }
-
-        Button(onClick = { navController.navigate("main_screen") }) {
-            Text(text = "Volver al Menú Principal")
-        }
     }
 }
 
@@ -343,8 +395,10 @@ fun MyDropMenu(
     var expanded by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White, shape = RoundedCornerShape(8.dp))
+            .padding(16.dp)
     ) {
         // Botón que despliega el menú
         OutlinedButton(
@@ -353,10 +407,6 @@ fun MyDropMenu(
         ) {
             Text(text = selectedAuthor?.let { "${it.nombre} ${it.apellido}" } ?: "Seleccionar Autor")
             Spacer(modifier = Modifier.width(8.dp))
-            Image(
-                painter = painterResource(id = R.drawable.baseline_arrow_drop_down_24),
-                contentDescription = "DropDown Icon"
-            )
         }
 
         // Menú desplegable
@@ -365,7 +415,6 @@ fun MyDropMenu(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surface)
-                    .border(1.dp, MaterialTheme.colorScheme.onSurface)
             ) {
                 authorList.forEach { author ->
                     TextButton(
