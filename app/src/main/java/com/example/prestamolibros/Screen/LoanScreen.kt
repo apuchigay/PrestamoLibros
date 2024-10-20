@@ -188,10 +188,10 @@ class LoanViewModelFactory(private val repository: LoanRepository) : ViewModelPr
 fun LoanForm(viewModel: LoanViewModel, navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
 
-    //LaunchedEffect(Unit) {
-    //    viewModel.getBooksAndMembers() // Cargar libros y miembros al iniciar
-    //    viewModel.getLoans() // Cargar préstamos al iniciar
-    //}
+    LaunchedEffect(Unit) {
+        viewModel.getBooksAndMembers() // Cargar libros y miembros al iniciar
+        viewModel.getLoans() // Cargar préstamos al iniciar
+    }
 
     Column(
         modifier = Modifier
